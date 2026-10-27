@@ -1,0 +1,29 @@
+원시인처럼 말하면 AI 비용이 준다? 🪨
+GitHub 별 11.5만 개, caveman 스킬이에요.
+
+🗿 뭐하는 스킬?
+AI 답변을 원시인 말투로 확 줄여요.
+저장소 예시: 같은 React 질문에 일반 답변 63토큰 → caveman 20토큰
+
+🔥 말투 강도 3단계
+/caveman 기본 원시인
+/ultracave 더 짧게
+/megacave 한문 모드
+끌 때는 /caveman off
+
+⚙️ 설치 (Claude Code)
+/plugin marketplace add JuliusBrussee/caveman
+/plugin install caveman@caveman
+
+💡 꿀팁
+① /caveman-commit 커밋 메시지도 짧게
+② /caveman-stats 얼마나 아꼈는지 확인
+③ CLI로 설치했다면 caveman telemetry off (기본으로 사용 통계 전송)
+
+👍 강추: 긴 답변 읽기 귀찮은 분, API 토큰 비용 아끼고 싶은 분
+👎 아쉬운 점: 규칙 때문에 입력 토큰이 약 1,160개 늘고, 요청 단위 과금(Copilot 등)은 절약 효과가 없어요
+
+🔗 github.com/JuliusBrussee/caveman (Apache-2.0)
+다음 편: UI UX Pro Max, AI 디자인이 촌스러울 때
+
+#AI스킬 #클로드코드 #ClaudeCode #토큰절약 #깃허브

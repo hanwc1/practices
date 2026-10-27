@@ -1,0 +1,29 @@
+시니어 개발자의 일하는 법, 통째로 설치하기 🧑‍💻
+GitHub 별 11만 개, Addy Osmani의 agent-skills예요.
+
+🛠 개발 전 과정이 명령어 6개
+/spec 무엇을 만들지 정의
+/plan 작은 작업으로 쪼개기
+/build 한 조각씩 구현
+/test 제대로 되는지 증명
+/review 머지 전 리뷰 (Claude Code에선 /agent-skills:review)
+/ship 배포
+
+⚡ 끝판왕 /build auto
+계획을 한 번 승인하면 전부 구현해요. 작업마다 테스트 먼저 하고 따로 커밋하고, 실패하거나 위험하면 멈춰요.
+
+📦 단계별 스킬 25개
+정의 4 · 계획 1 · 구현 7 · 검증 2 · 리뷰 4 · 출시 6 + 메타 1
+
+⚙️ 설치 (Claude Code)
+/plugin marketplace add addyosmani/agent-skills
+/plugin install agent-skills@addy-agent-skills
+다른 도구: npx skills add addyosmani/agent-skills
+
+👍 강추: 혼자 개발해도 팀처럼 체계적으로 하고 싶은 분, 보안·성능·배포까지 챙기고 싶은 분
+👎 아쉬운 점: 1화 superpowers와 겹치는 부분이 많아서 둘 중 하나만 골라 쓰는 걸 추천해요
+
+🔗 github.com/addyosmani/agent-skills (MIT)
+시즌 1 끝! 다음에 소개할 스킬을 댓글로 추천해 주세요 👇
+
+#AI스킬 #클로드코드 #ClaudeCode #바이브코딩 #깃허브

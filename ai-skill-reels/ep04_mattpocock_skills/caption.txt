@@ -1,0 +1,30 @@
+코딩 전에 AI가 나를 심문한다? 🕵️
+GitHub 별 30만 개, TypeScript 강사 Matt Pocock이 직접 쓰는 스킬 모음이에요.
+
+🔥 대표 스킬 /grill-me
+계획의 모든 갈래가 정리될 때까지 AI가 질문을 이어가요.
+
+🧰 같이 쓰면 좋은 스킬
+/tdd 테스트 먼저 쓰고 구현
+/diagnosing-bugs 재현 → 최소화 → 회귀 테스트
+/handoff 대화를 문서로 정리해 넘기기
+/teach 개념을 여러 번에 나눠 가르쳐줌
+
+🚀 3단 콤보: /to-spec → /to-tickets → /implement
+
+⚙️ 설치 (Claude Code, 터미널)
+claude plugin install mattpocock-skills@claude-plugins-official
+그다음 저장소마다 한 번: /setup-matt-pocock-skills
+
+💡 꿀팁
+① 저장소마다 처음 한 번 셋업
+② 코딩 전엔 /grill-me
+③ 뭘 쓸지 모르면 /ask-matt
+
+👍 강추: 계획 없이 코딩부터 하다 꼬이는 분, 팀에서 이슈·스펙 관리하는 분
+👎 아쉬운 점: 스킬이 많아 처음엔 헷갈리고, 이슈 트래커 연동 설정이 필요해요
+
+🔗 github.com/mattpocock/skills (MIT)
+다음 편: addyosmani/agent-skills, 개발 전 과정을 명령어 6개로
+
+#AI스킬 #클로드코드 #ClaudeCode #개발자 #깃허브
