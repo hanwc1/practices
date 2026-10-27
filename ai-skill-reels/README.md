@@ -10,6 +10,11 @@ GitHub에서 인기 있는 AI 에이전트 스킬을 하나씩 골라 소개하�
 | EP.03 | [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | `ep03_ui_ux_pro_max/` |
 | EP.04 | [mattpocock/skills](https://github.com/mattpocock/skills) | `ep04_mattpocock_skills/` |
 | EP.05 | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | `ep05_agent_skills/` |
+| EP.06 | [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) | `ep06_karpathy_skills/` |
+| EP.07 | [blader/humanizer](https://github.com/blader/humanizer) | `ep07_humanizer/` |
+| EP.08 | [garrytan/gstack](https://github.com/garrytan/gstack) | `ep08_gstack/` |
+| EP.09 | [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | `ep09_marketingskills/` |
+| EP.10 | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) | `ep10_claude_mem/` |
 
 각 폴더에 영상(무음 `*.mp4`, 음악은 인스타 앱에서 추가), 썸네일(`thumbnail_4x5.png`), 릴스 커버(`cover_9x16.png`), 캡션(`caption.txt`, @aimateur.lab 집사 말투)이 있어요. 캡션의 `[키워드]`는 댓글 이벤트 키워드로 바꿔 쓰세요. 확인 근거는 `SOURCES.md`에 정리했어요.
 
@@ -26,11 +31,11 @@ python3 ep02_caveman.py ../ep02_caveman  # EP.02부터는 영상+썸네일+커�
 
 - `common.py`: 배경, 카드, 애니메이션 같은 공통 그리기 도구
 - `card_style.py`: @aimateur.lab 카드 스타일 (손글씨 태그, 고양이 스티커, 말풍선, 헤드라인 패널)
-- `costumes.py`: 후추 코스튬 합성 (EP.01 히어로, EP.02 원시인, EP.03 화가, EP.04 탐정, EP.05 개발자)
+- `costumes.py`: 후추 코스튬 합성 (EP.01 히어로, 02 원시인, 03 화가, 04 탐정, 05 개발자, 06 교수, 07 작가, 08 CEO, 09 마케터, 10 포스트잇)
 - `ep01_superpowers.py`: EP.01 장면 구성
 - `thumb_ep01.py`: EP.01 썸네일·커버
 - `episode.py`: EP.02부터 쓰는 공통 엔진 (장면 틀, 렌더러, 썸네일·커버)
-- `ep02_caveman.py` ~ `ep05_agent_skills.py`: 편별 내용
+- `ep02_caveman.py` ~ `ep10_claude_mem.py`: 편별 내용
 - `fonts/`: Pretendard, Gaegu, JetBrains Mono (모두 SIL Open Font License, 라이선스 파일 포함)
 - `../assets/cat.webp`: 마스코트 고양이 사진
 

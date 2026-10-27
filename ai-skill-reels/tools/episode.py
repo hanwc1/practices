@@ -43,7 +43,8 @@ def numbered(n, h, sub, col, w, hgt, active):
     c = card_el(w, hgt, outline=col if active else LINE, width=4); d = ImageDraw.Draw(c); m = (hgt - 90) // 2
     d.ellipse((30, m, 120, m + 90), fill=col); nf = F("Black", 54 if len(n) < 2 else 40)
     d.text((75 - tw(n, nf) / 2, m + 6 + (0 if len(n) < 2 else 10)), n, font=nf, fill=INK)
-    hf = MONO44 if h.startswith("/") else fit_font(h, "ExtraBold", 50, w - 190)
+    hangul = any("\uac00" <= ch <= "\ud7a3" for ch in h)  # 코드 폰트엔 한글이 없음
+    hf = MONO44 if h.startswith("/") and not hangul else fit_font(h, "ExtraBold", 50, w - 190)
     sc = YEL if col == ACC else GREY
     if hgt < 130:  # 낮은 행: 제목 옆에 설명
         d.text((150, m + 14), h, font=hf, fill=WHITE); x = 150 + tw(h, hf) + 30
@@ -196,3 +197,43 @@ def thumbnails(out_dir, tag, bubble_lines, stars_text, head_lines, footer_left):
         footer(im, oy + 1270, footer_left)
         return im.convert("RGB")
     design(1350, 0).save(f"{out_dir}/thumbnail_4x5.png"); design(1920, 285).save(f"{out_dir}/cover_9x16.png")
+
+def stamp_card(title, lines, stamp_text, tag=None, line_font=None, at_stamp=3.0):
+    """제목 + 줄 목록 카드가 차례로 보이고, 끝에 빨간 도장이 쾅"""
+    lf = line_font or F("Bold", 44); h = 150 + 78 * len(lines)
+    c = card_el(900, h, fill=(24, 29, 37), outline=(70, 78, 88), r=28); d = ImageDraw.Draw(c)
+    d.text((40, 34), title, font=F("Black", 50), fill=GREY)
+    st = card_el(int(tw(stamp_text, F("Black", 60)) + 80), 140, fill=(40, 12, 12, 240), outline=RED, r=20, width=10)
+    ImageDraw.Draw(st).text((40, 30), stamp_text, font=F("Black", 60), fill=RED); st = st.rotate(-5, expand=True, resample=Image.BICUBIC)
+    def f(fr, t):
+        if tag:
+            el = text_el(tag, F("Bold", 32), GREY); paste(fr, el, W - 70 - el.width, 215, fade(t, 0))
+        cc = c.copy(); dd = ImageDraw.Draw(cc)
+        for i, s in enumerate(lines):
+            if t > .6 + i * .45:
+                y = 125 + i * 78; x = 40
+                if s[:2] in ("☐ ", "✔ "):  # 체크박스는 직접 그림 (폰트에 기호가 없을 수 있어서)
+                    dd.rounded_rectangle((40, y + 8, 84, y + 52), 8, outline=GREY if s[0] == "☐" else GREEN, width=5)
+                    if s[0] == "✔": check(dd, 46, y + 12, 32, GREEN, 6)
+                    s = s[2:]; x = 104
+                dd.text((x, y), s, font=lf, fill=WHITE if x == 40 or "☐" in lines[i][:1] else GREY)
+        rise(fr, cc, 90, 360, t, .2); pop(fr, st, (W - st.width) / 2, 360 + h - 60, t, at_stamp, 1.5)
+    return f
+
+def info_card(title, items, icon_text=None, top=360):
+    """제목 + 체크 항목 카드 (설명용)"""
+    h = 190 + 110 * len(items)
+    c = card_el(940, h, fill=(45, 30, 18), outline=ACC, width=5); d = ImageDraw.Draw(c)
+    x0 = 50
+    if icon_text:
+        d.rounded_rectangle((50, 46, 150, 146), 22, fill=ACC); d.text((100 - tw(icon_text, F("Black", 40)) / 2, 72), icon_text, font=F("Black", 40), fill=INK); x0 = 180
+    d.text((x0, 62), title, font=fit_font(title, "Black", 56, 940 - x0 - 40), fill=WHITE)
+    def f(fr, t):
+        cc = c.copy(); dd = ImageDraw.Draw(cc)
+        for i, (head_, sub_) in enumerate(items):
+            if t > .8 + i * .7:
+                y = 190 + i * 110; check(dd, 56, y + 6, 44, GREEN, 9)
+                dd.text((130, y - 4), head_, font=fit_font(head_, "Bold", 44, 770), fill=WHITE)
+                if sub_: dd.text((130, y + 52), sub_, font=fit_font(sub_, "SemiBold", 32, 770), fill=GREY)
+        pop(fr, cc, 70, top, t, .2)
+    return f

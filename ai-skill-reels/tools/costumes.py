@@ -147,8 +147,73 @@ def mug():
     for x in (30, 58): d.arc(s((x - 10, 4, x + 10, 44)), 100, 260, fill=(220, 220, 230, 230), width=s(5))
     return done(im)
 
+def mortarboard():
+    w, h = 360, 230; im = canvas(w, h); d = ImageDraw.Draw(im); c = (30, 32, 40, 255)
+    d.polygon([(s(110), s(120)), (s(250), s(120)), (s(240), s(200)), (s(120), s(200))], fill=c, outline=INK, width=s(5))
+    d.polygon([(s(180), s(30)), (s(350), s(100)), (s(180), s(160)), (s(10), s(100))], fill=(45, 48, 58, 255), outline=INK, width=s(6))
+    d.ellipse(s((170, 86, 190, 106)), fill=(255, 205, 60, 255))
+    d.line([(s(180), s(96)), (s(300), s(130)), (s(305), s(200))], fill=(255, 205, 60, 255), width=s(6))
+    d.rounded_rectangle(s((292, 195, 318, 228)), s(6), fill=(255, 205, 60, 255), outline=INK, width=s(3))
+    return done(im)
+
+def bowtie(col=(220, 45, 55, 255)):
+    w, h = 190, 100; im = canvas(w, h); d = ImageDraw.Draw(im)
+    d.polygon([(s(95), s(50)), (s(8), s(8)), (s(8), s(92))], fill=col, outline=INK, width=s(5))
+    d.polygon([(s(95), s(50)), (s(182), s(8)), (s(182), s(92))], fill=col, outline=INK, width=s(5))
+    d.rounded_rectangle(s((76, 30, 114, 70)), s(10), fill=col, outline=INK, width=s(5)); return done(im)
+
+def quill():
+    w, h = 110, 340; im = canvas(w, h); d = ImageDraw.Draw(im)
+    d.polygon([(s(55), s(4)), (s(100), s(120)), (s(70), s(250)), (s(55), s(270)), (s(40), s(250)), (s(10), s(120))], fill=(250, 250, 245, 255), outline=INK, width=s(5))
+    d.line([(s(55), s(20)), (s(55), s(300))], fill=(150, 150, 160, 255), width=s(4))
+    for y in range(60, 240, 30): d.line([(s(55), s(y)), (s(25 if y % 60 else 85), s(y + 22))], fill=(200, 200, 210, 255), width=s(3))
+    d.polygon([(s(48), s(290)), (s(62), s(290)), (s(55), s(336))], fill=(40, 40, 50, 255)); return done(im)
+
+def manuscript(font):
+    w, h = 300, 220; im = canvas(w, h); d = ImageDraw.Draw(im)
+    d.rounded_rectangle(s((6, 6, w - 6, h - 6)), s(14), fill=(255, 252, 240, 255), outline=INK, width=s(6))
+    for i in range(5): d.line([(s(30), s(60 + i * 32)), (s(w - 30 - (60 if i == 4 else 0)), s(60 + i * 32))], fill=(180, 190, 210, 255), width=s(3))
+    f = ImageFont.truetype(font, s(34)); d.text((s(30), s(10)), "사람 말투", font=f, fill=(220, 60, 60, 255)); return done(im)
+
+def necktie():
+    w, h = 120, 300; im = canvas(w, h); d = ImageDraw.Draw(im); c = (40, 90, 200, 255)
+    d.polygon([(s(30), s(6)), (s(90), s(6)), (s(78), s(56)), (s(42), s(56))], fill=c, outline=INK, width=s(5))
+    d.polygon([(s(42), s(56)), (s(78), s(56)), (s(104), s(240)), (s(60), s(294)), (s(16), s(240))], fill=c, outline=INK, width=s(5))
+    for y in (100, 160, 220): d.line([(s(30), s(y + 20)), (s(90), s(y - 20))], fill=(255, 205, 60, 255), width=s(6))
+    return done(im)
+
+def badge(text, font):
+    w, h = 220, 120; im = canvas(w, h); d = ImageDraw.Draw(im)
+    d.rounded_rectangle(s((6, 6, w - 6, h - 6)), s(16), fill=(255, 255, 255, 255), outline=INK, width=s(6))
+    d.rectangle(s((12, 12, w - 12, 40)), fill=(255, 140, 66, 255))
+    f = ImageFont.truetype(font, s(56)); tl = d.textlength(text, font=f); d.text(((s(w) - tl) / 2, s(42)), text, font=f, fill=INK); return done(im)
+
+def megaphone():
+    w, h = 300, 220; im = canvas(w, h); d = ImageDraw.Draw(im)
+    d.polygon([(s(70), s(80)), (s(270), s(10)), (s(270), s(210)), (s(70), s(140))], fill=(255, 140, 66, 255), outline=INK, width=s(6))
+    d.ellipse(s((240, 10, 296, 210)), fill=(255, 190, 120, 255), outline=INK, width=s(6))
+    d.rounded_rectangle(s((20, 76, 80, 144)), s(12), fill=(230, 230, 240, 255), outline=INK, width=s(6))
+    d.rounded_rectangle(s((90, 140, 130, 210)), s(10), fill=(60, 60, 70, 255), outline=INK, width=s(5))
+    return done(im)
+
+def growth_chart():
+    w, h = 260, 220; im = canvas(w, h); d = ImageDraw.Draw(im)
+    d.rounded_rectangle(s((6, 6, w - 6, h - 6)), s(16), fill=(255, 255, 255, 255), outline=INK, width=s(6))
+    for i, (bh, c) in enumerate([(50, (88, 166, 255)), (90, (63, 185, 80)), (140, (255, 140, 66))]):
+        x = 40 + i * 65; d.rectangle(s((x, 190 - bh, x + 45, 190)), fill=c + (255,), outline=INK, width=s(4))
+    d.line([(s(40), s(130)), (s(110), s(95)), (s(150), s(105)), (s(225), s(35))], fill=(220, 45, 55, 255), width=s(8))
+    d.polygon([(s(232), s(26)), (s(200), s(34)), (s(222), s(58))], fill=(220, 45, 55, 255)); return done(im)
+
+def postit(text, font, col=(255, 228, 92, 255)):
+    w = 170; im = canvas(w, w); d = ImageDraw.Draw(im)
+    d.rectangle(s((8, 8, w - 8, w - 8)), fill=col, outline=INK, width=s(5)); d.rectangle(s((8, 8, w - 8, 34)), fill=tuple(max(0, v - 30) for v in col[:3]) + (255,))
+    size = 44
+    while size > 20 and d.textlength(text, font=ImageFont.truetype(font, s(size))) > s(w - 34): size -= 2
+    f = ImageFont.truetype(font, s(size)); tl = d.textlength(text, font=f); d.text(((s(w) - tl) / 2, s(66 + (44 - size) / 2)), text, font=f, fill=INK); return done(im)
+
 # ---------- 코스튬 조합 ----------
 def dress(photo, name, mono_path):
+    global KFONT; KFONT = mono_path.replace("JetBrainsMono-Bold.ttf", "Pretendard-Black.otf")
     """photo: 원본 RGBA(768x876). 위쪽에 PAD만큼 여유를 둔 합성 이미지를 돌려줌"""
     W0, H0 = photo.size; size = (W0, H0 + PAD); base = Image.new("RGBA", size, (0, 0, 0, 0))
     mask = Image.new("L", size, 0); mask.paste(photo.getchannel("A"), (0, PAD))
@@ -172,6 +237,23 @@ def dress(photo, name, mono_path):
     elif name == "dev":
         base.alpha_composite(photo, (0, PAD))
         put(base, glasses(), EYE_MID); put(base, laptop(mono_path), (420, 720), 0); put(base, mug(), (110, 770), 0)
+    elif name == "professor":
+        base.alpha_composite(photo, (0, PAD))
+        put(base, mortarboard(), head_point(165, -10), TILT); put(base, bowtie(), (440, 478), TILT * .4)
+    elif name == "writer":
+        base.alpha_composite(photo, (0, PAD))
+        put(base, quill(), (215, 150), TILT + 22); put(base, manuscript(KFONT), (200, 730), 10)
+    elif name == "ceo":
+        base.alpha_composite(photo, (0, PAD))
+        put(base, necktie(), (445, 600), TILT * .25); put(base, badge("CEO", KFONT), (230, 660), 8)
+    elif name == "marketer":
+        base.alpha_composite(photo, (0, PAD))
+        put(base, megaphone(), (170, 640), 160); put(base, growth_chart(), (610, 730), -8)
+    elif name == "memory":
+        base.alpha_composite(photo, (0, PAD))
+        put(base, postit("기억!", KFONT), head_point(120, -70), TILT + 12)
+        put(base, postit("TODO", KFONT, (150, 220, 255, 255)), head_point(105, 85), TILT - 14)
+        put(base, postit("어제 한 일", KFONT, (255, 170, 200, 255)), (230, 700), -6)
     else:
         base.alpha_composite(photo, (0, PAD))
     return base
