@@ -3,6 +3,7 @@ import math, os, subprocess, sys
 from PIL import Image, ImageDraw, ImageFont
 from common import MONO_PATH, FPS, H
 from card_style import *
+import card_style; card_style.COSTUME = "hero"
 from ep_utils import star
 
 OUT = sys.argv[1]

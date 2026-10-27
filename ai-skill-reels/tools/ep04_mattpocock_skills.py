@@ -1,6 +1,7 @@
 # EP.04 mattpocock/skills (⭐ 304.1k, MIT · 2026-10-27 저장소 페이지 기준)
 import sys
 from episode import *
+import card_style; card_style.COSTUME = "detective"
 
 OUT = sys.argv[1]; os.makedirs(OUT, exist_ok=True)
 TAG = "GitHub 인기 스킬 #4"; FOOT = "EP.04 · mattpocock/skills"

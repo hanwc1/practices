@@ -11,7 +11,7 @@ GitHub에서 인기 있는 AI 에이전트 스킬을 하나씩 골라 소개하�
 | EP.04 | [mattpocock/skills](https://github.com/mattpocock/skills) | `ep04_mattpocock_skills/` |
 | EP.05 | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | `ep05_agent_skills/` |
 
-각 폴더에 영상(mp4), 썸네일(`thumbnail_4x5.png`), 릴스 커버(`cover_9x16.png`), 캡션(`caption.txt`)이 있어요. 확인 근거는 `SOURCES.md`에 정리했어요.
+각 폴더에 영상(mp4), 썸네일(`thumbnail_4x5.png`), 릴스 커버(`cover_9x16.png`), 캡션(`caption.txt`, @aimateur.lab 집사 말투)이 있어요. 캡션의 `[키워드]`는 댓글 이벤트 키워드로 바꿔 쓰세요. 확인 근거는 `SOURCES.md`에 정리했어요.
 
 ## 영상 다시 만들기 (`tools/`)
 무료 도구만 사용해요 (Python + Pillow + ffmpeg). 유료 생성 서비스는 쓰지 않아요.
@@ -26,6 +26,7 @@ python3 ep02_caveman.py ../ep02_caveman  # EP.02부터는 영상+썸네일+커�
 
 - `common.py`: 배경, 카드, 애니메이션 같은 공통 그리기 도구
 - `card_style.py`: @aimateur.lab 카드 스타일 (손글씨 태그, 고양이 스티커, 말풍선, 헤드라인 패널)
+- `costumes.py`: 후추 코스튬 합성 (EP.01 히어로, EP.02 원시인, EP.03 화가, EP.04 탐정, EP.05 개발자)
 - `ep01_superpowers.py`: EP.01 장면 구성
 - `thumb_ep01.py`: EP.01 썸네일·커버
 - `episode.py`: EP.02부터 쓰는 공통 엔진 (장면 틀, 렌더러, 썸네일·커버)

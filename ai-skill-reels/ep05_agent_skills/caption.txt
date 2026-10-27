@@ -1,29 +1,26 @@
-시니어 개발자의 일하는 법, 통째로 설치하기 🧑‍💻
-GitHub 별 11만 개, Addy Osmani의 agent-skills예요.
+혼자 개발해도 팀처럼 체계 잡고 싶은 거, 나만 그래? 🙋
 
-🛠 개발 전 과정이 명령어 6개
-/spec 무엇을 만들지 정의
-/plan 작은 작업으로 쪼개기
-/build 한 조각씩 구현
-/test 제대로 되는지 증명
-/review 머지 전 리뷰 (Claude Code에선 /agent-skills:review)
-/ship 배포
+기획, 구현, 테스트, 배포까지
+매번 순서가 뒤죽박죽인 집사.
+리뷰는 건너뛰고 배포부터 해버림…
+옆에서 후추가 꼬리를 탁. "리뷰는 했냥?" 😼
 
-⚡ 끝판왕 /build auto
-계획을 한 번 승인하면 전부 구현해요. 작업마다 테스트 먼저 하고 따로 커밋하고, 실패하거나 위험하면 멈춰요.
+GitHub 별 11만 개 agent-skills는
+시니어 개발자의 작업 습관을 스킬 25개로 담았어요.
+개발 전 과정을 명령어 6개로 따라가면 돼요.
 
-📦 단계별 스킬 25개
-정의 4 · 계획 1 · 구현 7 · 검증 2 · 리뷰 4 · 출시 6 + 메타 1
+📒 오늘의 스터디 노트: 개발 전 과정 명령어 6개
+1⃣ /spec → /plan: 무엇을 만들지 정하고 작은 작업으로 쪼개기
+2⃣ /build → /test: 한 조각씩 구현하고 제대로 되는지 증명
+3⃣ /review → /ship: 머지 전에 리뷰하고 배포
+✏️ Claude Code에서 리뷰는 /agent-skills:review로 불러요.
 
-⚙️ 설치 (Claude Code)
-/plugin marketplace add addyosmani/agent-skills
-/plugin install agent-skills@addy-agent-skills
-다른 도구: npx skills add addyosmani/agent-skills
+@aimateur.lab 팔로우하고
+댓글에 다음에 보고 싶은 스킬을 추천해 주세요.
 
-👍 강추: 혼자 개발해도 팀처럼 체계적으로 하고 싶은 분, 보안·성능·배포까지 챙기고 싶은 분
-👎 아쉬운 점: 1화 superpowers와 겹치는 부분이 많아서 둘 중 하나만 골라 쓰는 걸 추천해요
+까먹기 전에 저장해 두고 📌
+같이 공부할 스터디 메이트도 태그해 주세요.
 
-🔗 github.com/addyosmani/agent-skills (MIT)
-시즌 1 끝! 다음에 소개할 스킬을 댓글로 추천해 주세요 👇
+다음 노트 #6: 시즌 2, 여러분이 댓글로 추천한 스킬
 
-#AI스킬 #클로드코드 #ClaudeCode #바이브코딩 #깃허브
+#클로드코드 #AI공부 #바이브코딩 #깃허브 #냥스타그램

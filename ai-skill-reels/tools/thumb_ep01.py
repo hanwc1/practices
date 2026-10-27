@@ -2,6 +2,7 @@
 # 커버는 프로필 그리드가 가운데 4:5만 보여주므로, 썸네일 디자인을 그대로 가운데에 두고 위아래만 늘림
 import sys
 from card_style import *
+import card_style; card_style.COSTUME = "hero"
 
 OUT = sys.argv[1]
 TAG = "GitHub 인기 스킬 #1"

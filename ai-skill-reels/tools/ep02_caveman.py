@@ -1,6 +1,7 @@
 # EP.02 JuliusBrussee/caveman (⭐ 115.3k, Apache-2.0 · 2026-10-27 저장소 페이지 기준)
 import sys
 from episode import *
+import card_style; card_style.COSTUME = "caveman"
 
 OUT = sys.argv[1]; os.makedirs(OUT, exist_ok=True)
 TAG = "GitHub 인기 스킬 #2"; FOOT = "EP.02 · JuliusBrussee/caveman"

@@ -1,29 +1,27 @@
-원시인처럼 말하면 AI 비용이 준다? 🪨
-GitHub 별 11.5만 개, caveman 스킬이에요.
+한 줄이면 될 답을 한 페이지로 받는 거, 나만 그래? 🙋
 
-🗿 뭐하는 스킬?
-AI 답변을 원시인 말투로 확 줄여요.
-저장소 예시: 같은 React 질문에 일반 답변 63토큰 → caveman 20토큰
+"useEffect가 왜 계속 다시 실행돼?" 물어봤더니
+끝도 없이 이어지는 AI의 설명…
+그래서 결론이 뭔데, 스크롤만 내리는 집사.
+옆에서 후추가 한마디. "짧게 말하라냥" 😼
 
-🔥 말투 강도 3단계
-/caveman 기본 원시인
-/ultracave 더 짧게
-/megacave 한문 모드
-끌 때는 /caveman off
+GitHub 별 11.5만 개 caveman 스킬은
+AI 답변을 원시인 말투로 확 줄여줘요.
+저장소 예시로 보면, 같은 질문에
+63토큰이던 답이 20토큰으로 줄어요.
 
-⚙️ 설치 (Claude Code)
-/plugin marketplace add JuliusBrussee/caveman
-/plugin install caveman@caveman
+📒 오늘의 스터디 노트: caveman 말투 3단계
+1⃣ /caveman: 기본 원시인, 20토큰
+2⃣ /ultracave: 더 짧게, 14토큰
+3⃣ /megacave: 한문 모드, 13토큰
+🔒 끌 때는 /caveman off. 규칙 때문에 입력 토큰은 약 1,160개 늘어나요.
 
-💡 꿀팁
-① /caveman-commit 커밋 메시지도 짧게
-② /caveman-stats 얼마나 아꼈는지 확인
-③ CLI로 설치했다면 caveman telemetry off (기본으로 사용 통계 전송)
+@aimateur.lab 팔로우하고
+댓글에 "[키워드]" 남겨 주세요.
 
-👍 강추: 긴 답변 읽기 귀찮은 분, API 토큰 비용 아끼고 싶은 분
-👎 아쉬운 점: 규칙 때문에 입력 토큰이 약 1,160개 늘고, 요청 단위 과금(Copilot 등)은 절약 효과가 없어요
+까먹기 전에 저장해 두고 📌
+같이 공부할 스터디 메이트도 태그해 주세요.
 
-🔗 github.com/JuliusBrussee/caveman (Apache-2.0)
-다음 편: UI UX Pro Max, AI 디자인이 촌스러울 때
+다음 노트 #3: UI UX Pro Max, AI 디자인이 촌스러울 때
 
-#AI스킬 #클로드코드 #ClaudeCode #토큰절약 #깃허브
+#클로드코드 #AI공부 #토큰절약 #깃허브 #냥스타그램

@@ -1,6 +1,7 @@
 # EP.05 addyosmani/agent-skills (⭐ 110.8k, MIT · 2026-10-27 저장소 페이지 기준)
 import sys
 from episode import *
+import card_style; card_style.COSTUME = "dev"
 
 OUT = sys.argv[1]; os.makedirs(OUT, exist_ok=True)
 TAG = "GitHub 인기 스킬 #5"; FOOT = "EP.05 · addyosmani/agent-skills"

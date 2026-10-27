@@ -1,7 +1,7 @@
 # @aimateur.lab 카드 스타일: 손글씨 태그, 고양이 스티커, 말풍선, 하단 헤드라인 패널 (다크 네이비 + 주황/노랑)
 import os
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from common import (S, W, BG, CARD, LINE, WHITE, GREY, ACC, GREEN, BLUE, YEL, RED, F, layer, paste, text_el, rich_el,
+from common import (S, W, MONO_PATH, BG, CARD, LINE, WHITE, GREY, ACC, GREEN, BLUE, YEL, RED, F, layer, paste, text_el, rich_el,
                     card_el, tw, clamp, ease, fade, check)
 
 HAND = f"{S}/fonts/Gaegu-Bold.ttf"
@@ -32,10 +32,16 @@ def sticker(img, outline=14, shadow=True):
     out.alpha_composite(img, (outline * 2, outline * 2)); return out
 
 _cat_cache = {}
-def cat(height, flip=False):
-    k = (height, flip)
+COSTUME = None  # 편마다 설정: hero, caveman, artist, detective, dev (costumes.py)
+def cat(height, flip=False, costume=None):
+    """height = 후추 사진 높이. 코스튬의 모자 등이 위로 튀어나온 만큼 이미지가 더 커짐"""
+    costume = costume or COSTUME; k = (height, flip, costume)
     if k not in _cat_cache:
-        im = Image.open(CAT_PATH).convert("RGBA"); im = im.resize((int(im.width * height / im.height), height), Image.LANCZOS)
+        im = Image.open(CAT_PATH).convert("RGBA"); h = height
+        if costume:
+            from costumes import dress, PAD
+            im = dress(im, costume, MONO_PATH); h = int(height * im.height / (im.height - PAD))
+        im = im.resize((int(im.width * h / im.height), h), Image.LANCZOS)
         if flip: im = im.transpose(Image.FLIP_LEFT_RIGHT)
         _cat_cache[k] = sticker(im)
     return _cat_cache[k]
