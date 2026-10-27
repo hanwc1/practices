@@ -1,0 +1,26 @@
+GitHub 별 30만 개 넘은 AI 스킬, superpowers ⭐
+AI가 묻지도 않고 코드부터 쏟아내는 문제를 "일하는 순서"로 해결해요.
+
+🧠 자동으로 돌아가는 5단계
+1. 브레인스토밍: 질문을 한 번에 하나씩
+2. 설계 문서: 승인 전엔 코드 0줄
+3. 작업 계획: 작은 단위로 쪼개기
+4. 테스트 먼저(TDD): 실패하는 테스트 → 코드
+5. 코드 리뷰: 계획대로 됐는지 검사
+
+⚙️ 설치 (Claude Code)
+/plugin install superpowers@claude-plugins-official
+Codex·Cursor·Gemini CLI 등은 저장소 README에 따로 설치법이 있어요.
+
+💡 사용 꿀팁
+① 명령어 필요 없음: 평소처럼 "~ 만들자"라고 말하면 자동 작동
+② 질문엔 꼼꼼히 답하기
+③ 설계 문서는 꼭 읽고 승인
+
+👍 강추: 바이브코딩하다 코드가 자꾸 엉키는 분
+👎 아쉬운 점: 1줄짜리 빠른 수정엔 과할 수 있어요
+
+🔗 github.com/obra/superpowers (MIT · 무료)
+다음 편: caveman 🪨 원시인 말투로 토큰을 줄인다고?
+
+#AI스킬 #클로드코드 #ClaudeCode #바이브코딩 #깃허브
