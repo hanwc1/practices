@@ -11,7 +11,7 @@ GitHub에서 인기 있는 AI 에이전트 스킬을 하나씩 골라 소개하�
 | EP.04 | [mattpocock/skills](https://github.com/mattpocock/skills) | `ep04_mattpocock_skills/` |
 | EP.05 | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | `ep05_agent_skills/` |
 
-각 폴더에 영상(무음 `*.mp4`, 배경음악 포함 `*_bgm.mp4`), 썸네일(`thumbnail_4x5.png`), 릴스 커버(`cover_9x16.png`), 캡션(`caption.txt`, @aimateur.lab 집사 말투)이 있어요. 캡션의 `[키워드]`는 댓글 이벤트 키워드로 바꿔 쓰세요. 확인 근거는 `SOURCES.md`에 정리했어요.
+각 폴더에 영상(무음 `*.mp4`, 음악은 인스타 앱에서 추가), 썸네일(`thumbnail_4x5.png`), 릴스 커버(`cover_9x16.png`), 캡션(`caption.txt`, @aimateur.lab 집사 말투)이 있어요. 캡션의 `[키워드]`는 댓글 이벤트 키워드로 바꿔 쓰세요. 확인 근거는 `SOURCES.md`에 정리했어요.
 
 ## 영상 다시 만들기 (`tools/`)
 무료 도구만 사용해요 (Python + Pillow + ffmpeg). 유료 생성 서비스는 쓰지 않아요.
@@ -34,12 +34,4 @@ python3 ep02_caveman.py ../ep02_caveman  # EP.02부터는 영상+썸네일+커�
 - `fonts/`: Pretendard, Gaegu, JetBrains Mono (모두 SIL Open Font License, 라이선스 파일 포함)
 - `../assets/cat.webp`: 마스코트 고양이 사진
 
-출력은 1080×1920, 30fps예요. 무음 영상에 배경음악을 입히려면:
-
-```bash
-pip install numpy scipy soundfile
-python3 add_bgm.py            # 모든 편 → *_bgm.mp4
-python3 add_bgm.py ep02_caveman   # 한 편만
-```
-
-배경음악은 `music.py`가 코드로 직접 합성한 업비트 팝(112~124 BPM)이라 저작권 걱정이 없어요. 편마다 템포와 코드 진행이 달라요. 잔잔한 로파이 버전(`generate`)도 남겨 뒀어요.
+출력은 1080×1920, 30fps, 무음이에요. 음악은 인스타 앱에서 넣어요 (오디오 페이지 노출에 유리).
