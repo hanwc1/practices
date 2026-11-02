@@ -1,4 +1,6 @@
+import Combine
 import SwiftUI
+import UIKit
 import UserNotifications
 
 @main
@@ -65,6 +67,10 @@ struct ContentView: View {
         .task {
             await store.requestNotificationsIfNeeded()
         }
+        // 앱을 켜 둔 채 자정이 지나거나 시간대가 바뀌어도 "오늘"을 맞춰요.
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            store.refreshDay()
+        }
     }
 }
 
@@ -97,20 +103,27 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     ) {
         let content = response.notification.request.content
         let missionID = content.userInfo["missionID"] as? String
+        let dayKey = content.userInfo["day"] as? String
         let action = response.actionIdentifier
         let title = content.title
         let body = content.body
 
         Task { @MainActor in
-            if let missionID, let id = UUID(uuidString: missionID) {
-                let store = GameStore.shared
-                store.refreshDay()
+            let store = GameStore.shared
+            store.refreshDay()
+            if let missionID, let id = UUID(uuidString: missionID),
+               let mission = store.missions.first(where: { $0.id == id }),
+               dayKey == nil || dayKey == store.todayKey,
+               !mission.isDone(on: store.today) {
+                // 오늘 알림이고 아직 안 끝낸 미션일 때만 처리해요. (어제 알림의 [완료]는 무시)
                 if action == NotificationManager.actionDone {
                     store.complete(id, withFeedback: false)
                 } else if action == NotificationManager.actionSnooze {
-                    NotificationManager.shared.snooze(missionID: missionID, title: title, body: body)
+                    NotificationManager.shared.snooze(missionID: missionID, dayKey: store.todayKey, title: title, body: body)
                 }
             }
+            // 알림 다시 잡기가 끝난 뒤에 iOS 에 처리 완료를 알려요.
+            await NotificationManager.shared.reschedule(store: store).value
             completionHandler()
         }
     }

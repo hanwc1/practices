@@ -8,7 +8,7 @@ enum DayKey {
         let f = DateFormatter()
         f.calendar = Calendar(identifier: .gregorian)
         f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = .current
+        f.timeZone = .autoupdatingCurrent
         f.dateFormat = "yyyy-MM-dd"
         return f
     }()
@@ -118,7 +118,11 @@ extension Mission {
         case .weekly:
             return d >= s && weekdays.contains(cal.component(.weekday, from: d))
         case .monthly:
-            return d >= s && cal.component(.day, from: d) == cal.component(.day, from: s)
+            // 31일에 시작한 미션은 30일까지 있는 달에는 마지막 날에 나와요.
+            guard d >= s else { return false }
+            let startDay = cal.component(.day, from: s)
+            let daysInMonth = cal.range(of: .day, in: .month, for: d)?.count ?? 31
+            return cal.component(.day, from: d) == min(startDay, daysInMonth)
         }
     }
 
@@ -193,6 +197,27 @@ struct Planet: Identifiable, Codable, Equatable {
     var discoveredAt: Date
     /// 발견한 날 끝낸 미션 이름들
     var missions: [String] = []
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, type, rarity, hue, hue2, bands, ring, seed, discoveredAt, missions
+    }
+}
+
+extension Planet {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.decode(.id, default: UUID())
+        name = c.decode(.name, default: "이름 없는 행성")
+        type = c.decode(.type, default: "행성")
+        rarity = c.decode(.rarity, default: Rarity.common)
+        hue = c.decode(.hue, default: 0.6)
+        hue2 = c.decode(.hue2, default: 0.7)
+        bands = c.decode(.bands, default: 0)
+        ring = c.decode(.ring, default: false)
+        seed = c.decode(.seed, default: 1)
+        discoveredAt = c.decode(.discoveredAt, default: Date())
+        missions = c.decode(.missions, default: [String]())
+    }
 }
 
 // MARK: - 게임 상태
@@ -242,7 +267,7 @@ extension GameState {
         legendNext = c.decode(.legendNext, default: false)
         parts = c.decode(.parts, default: 0)
         skins = c.decode(.skins, default: ["기본"])
-        planets = c.decode(.planets, default: [Planet]())
+        planets = c.decodeList(.planets, of: Planet.self)
         mainMission = c.decode(.mainMission, default: [String: UUID]())
         lastCompletionAt = c.decode(.lastCompletionAt, default: Date?.none)
         comboCount = c.decode(.comboCount, default: 0)
@@ -300,7 +325,7 @@ struct SaveData: Codable {
 extension SaveData {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        missions = c.decode(.missions, default: [Mission]())
+        missions = c.decodeList(.missions, of: Mission.self)
         game = c.decode(.game, default: GameState())
         settings = c.decode(.settings, default: AppSettings())
     }
@@ -310,6 +335,33 @@ extension KeyedDecodingContainer {
     /// 값이 없거나 형식이 달라도 기본값을 써서, 앱을 업데이트해도 기존 기록을 잃지 않게 합니다.
     func decode<T: Decodable>(_ key: Key, default value: T) -> T {
         (try? decodeIfPresent(T.self, forKey: key)) ?? value
+    }
+
+    /// 목록 안에 읽을 수 없는 항목이 하나 있어도 나머지는 살려요.
+    func decodeList<T: Decodable>(_ key: Key, of type: T.Type) -> [T] {
+        guard let list = try? decodeIfPresent(LossyList<T>.self, forKey: key) else { return [] }
+        return list.items
+    }
+}
+
+struct LossyList<T: Decodable>: Decodable {
+    var items: [T] = []
+
+    private struct Skip: Decodable {
+        init(from decoder: Decoder) throws {}
+    }
+
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        while !container.isAtEnd {
+            let index = container.currentIndex
+            if let item = try? container.decode(T.self) {
+                items.append(item)
+            } else {
+                _ = try? container.decode(Skip.self)
+            }
+            if container.currentIndex == index { break }
+        }
     }
 }
 

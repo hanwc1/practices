@@ -23,6 +23,10 @@ struct MissionEditView: View {
         draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var mainLocked: Bool {
+        store.mainIsLocked(on: store.today)
+    }
+
     private var canSave: Bool {
         !trimmedTitle.isEmpty && !(draft.repeatKind == .weekly && draft.weekdays.isEmpty)
     }
@@ -67,8 +71,11 @@ struct MissionEditView: View {
 
                 Section {
                     Toggle("오늘의 메인 미션", isOn: $makeMain)
+                        .disabled(mainLocked)
                 } footer: {
-                    Text("하루에 하나만 고를 수 있어요. 경험치 +\(Rules.mainBonus) 보너스, 캡슐이 나올 확률도 올라가요.")
+                    Text(mainLocked
+                         ? "오늘은 메인 미션을 이미 끝내서 바꿀 수 없어요."
+                         : "하루에 하나만 고를 수 있어요. 경험치 +\(Rules.mainBonus) 보너스, 캡슐이 나올 확률도 올라가요.")
                 }
 
                 if original != nil {

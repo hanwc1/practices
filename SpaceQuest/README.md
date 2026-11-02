@@ -36,6 +36,7 @@ https://github.com/hanwc1/practices/archive/refs/heads/claude/sweet-sagan-blwa7y
 2. 가운데 화면에서 **TARGETS → SpaceQuest** 를 고르고, 위쪽 **Signing & Capabilities** 탭을 누릅니다.
 3. **Team** 에서 **Add an Account…** 를 눌러 Apple ID로 로그인한 뒤, `(Personal Team)` 이라고 붙은 내 이름을 고릅니다.
 4. 빨간 오류가 Bundle Identifier 때문이라면 `com.hanwc1.SpaceQuest` 를 `com.내이름.SpaceQuest` 처럼 바꿔 주세요.
+   (처음 설치할 때만 바꾸세요. 나중에 바꾸면 다른 앱으로 설치돼서 기존 기록이 보이지 않아요.)
 
 ### 4. iPhone 준비 (처음 한 번)
 1. iPhone을 Mac에 케이블로 연결하고, iPhone에 뜨는 "이 컴퓨터를 신뢰하겠습니까?"에서 **신뢰**를 누릅니다.

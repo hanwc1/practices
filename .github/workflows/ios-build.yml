@@ -16,10 +16,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Select newest Xcode
         run: |
-          NEWEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
+          NEWEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vi beta | sort -V | tail -1)
           if [ -n "$NEWEST" ]; then sudo xcode-select -s "$NEWEST"; fi
           xcodebuild -version
 
@@ -55,6 +57,7 @@ jobs:
           xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 || true
           xcrun simctl install "$UDID" "$APP"
           mkdir -p shots
+          FAILED=0
           shoot() {
             name=$1; shift
             xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
@@ -64,6 +67,7 @@ jobs:
               echo "RUNNING: $name"
             else
               echo "CRASHED: $name"
+              FAILED=1
             fi
             xcrun simctl io "$UDID" screenshot "shots/$name.png" >/dev/null 2>&1
             sips -Z 900 "shots/$name.png" >/dev/null
@@ -78,6 +82,7 @@ jobs:
           echo "===== crash reports ====="
           ls ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i spacequest || echo "none"
           ls -la shots
+          exit $FAILED
 
       - name: Upload screenshots
         if: always()
@@ -86,3 +91,29 @@ jobs:
           name: screenshots
           path: shots/
           retention-days: 7
+
+  # 스크린샷을 별도 브랜치(ci-screenshots)에 올려서 쉽게 볼 수 있게 해요.
+  # 쓰기 권한은 이 작업에만 있고, 빌드 작업은 읽기 전용이에요.
+  publish-screenshots:
+    needs: build
+    if: always() && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: screenshots
+          path: shots
+      - name: Push to ci-screenshots branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd shots
+          git init -q -b ci-screenshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Screenshots for ${GITHUB_SHA}"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-screenshots

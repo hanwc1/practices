@@ -15,7 +15,8 @@ final class NotificationManager {
 
     /// 알림의 [완료] [10분 뒤] 버튼 등록
     func registerCategories() {
-        let done = UNNotificationAction(identifier: Self.actionDone, title: "완료", options: [])
+        // 잠금 상태에서는 [완료]를 누르면 먼저 잠금을 풀게 해요. (다른 사람이 대신 완료하는 것 방지)
+        let done = UNNotificationAction(identifier: Self.actionDone, title: "완료", options: [.authenticationRequired])
         let snooze = UNNotificationAction(identifier: Self.actionSnooze, title: "10분 뒤", options: [])
         let category = UNNotificationCategory(identifier: Self.categoryID, actions: [done, snooze], intentIdentifiers: [], options: [])
         center.setNotificationCategories([category])
@@ -31,11 +32,13 @@ final class NotificationManager {
 
     /// 앞으로 7일 동안의 미션 알림을 다시 잡습니다.
     /// 이미 끝낸 미션은 알리지 않도록, 반복 알림 대신 날짜별 알림을 만들어요.
-    func reschedule(store: GameStore) {
+    /// 앱을 일주일 넘게 열지 않으면 그 뒤 미션 알림은 앱을 열 때 다시 잡혀요.
+    @discardableResult
+    func reschedule(store: GameStore) -> Task<Void, Never> {
         let requests = buildRequests(missions: store.missions, settings: store.settings, mainByDay: store.game.mainMission)
         generation += 1
         let myGeneration = generation
-        Task {
+        return Task {
             let pending = await center.pendingNotificationRequests()
             guard myGeneration == generation else { return }
             let old = pending.map { $0.identifier }.filter { $0.hasPrefix("rem-") || $0.hasPrefix("brief-") }
@@ -47,19 +50,27 @@ final class NotificationManager {
         }
     }
 
-    func snooze(missionID: String, title: String, body: String) {
+    func snooze(missionID: String, dayKey: String, title: String, body: String) {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = .default
         content.categoryIdentifier = Self.categoryID
-        content.userInfo = ["missionID": missionID]
+        content.userInfo = ["missionID": missionID, "day": dayKey]
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10 * 60, repeats: false)
         center.add(UNNotificationRequest(identifier: "snooze-\(missionID)", content: content, trigger: trigger))
     }
 
     func cancelSnooze(missionID: String) {
         center.removePendingNotificationRequests(withIdentifiers: ["snooze-\(missionID)"])
+    }
+
+    func cancelAllSnoozes() {
+        Task {
+            let pending = await center.pendingNotificationRequests()
+            let ids = pending.map { $0.identifier }.filter { $0.hasPrefix("snooze-") }
+            center.removePendingNotificationRequests(withIdentifiers: ids)
+        }
     }
 
     private func buildRequests(missions: [Mission], settings: AppSettings, mainByDay: [String: UUID]) -> [UNNotificationRequest] {
@@ -81,7 +92,7 @@ final class NotificationManager {
                 content.body = m.title
                 content.sound = .default
                 content.categoryIdentifier = Self.categoryID
-                content.userInfo = ["missionID": m.id.uuidString]
+                content.userInfo = ["missionID": m.id.uuidString, "day": key]
 
                 let comps = cal.dateComponents([.year, .month, .day, .hour, .minute], from: fire)
                 let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)

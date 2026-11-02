@@ -1,6 +1,23 @@
 import Foundation
 import Observation
 
+/// 미션 완료를 되돌릴 때 원래대로 돌려놓기 위한 기록 (앱이 켜져 있는 동안만 보관)
+private struct CompletionRecord {
+    let dayKey: String
+    let completedAt: Date
+    let xp: Int
+    var levelUps: Int
+    var rolledCapsule: Bool
+    let planetID: UUID?
+    let fuelBefore: Int
+    let streakBefore: Int
+    let bestStreakBefore: Int
+    let lastActiveBefore: String?
+    let emergencyBefore: Int
+    let comboBefore: Int
+    let lastCompletionBefore: Date?
+}
+
 /// 앱의 모든 데이터와 게임 규칙을 처리합니다. 데이터는 폰 안의 파일 하나에 저장돼요.
 @MainActor
 @Observable
@@ -10,7 +27,7 @@ final class GameStore {
     var missions: [Mission] = []
     var game = GameState()
     var settings = AppSettings()
-    /// 화면이 기준으로 삼는 "오늘". 앱을 다시 열 때 갱신돼요.
+    /// 화면이 기준으로 삼는 "오늘". 앱을 열 때와 자정에 갱신돼요.
     var today = Date()
     /// 차례로 보여 줄 축하 화면(레벨업, 행성 발견, 캡슐 등)
     var celebrations: [CelebrationItem] = []
@@ -18,38 +35,61 @@ final class GameStore {
     var lastEffect: CompletionEffect?
 
     private let fileURL: URL
+    /// 저장 파일이 있는데 아직 읽지 못한 상태 (예: 재시동 후 아직 잠금 해제 전).
+    /// 이때는 빈 데이터로 덮어쓰지 않도록 저장을 막아요.
+    private var fileUnreadable = false
+    private var demo = false
+    private var undoRecords: [UUID: CompletionRecord] = [:]
 
     init() {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         fileURL = dir.appendingPathComponent("spacequest.json")
-        load()
         #if DEBUG
         if DemoMode.isOn {
+            demo = true
             loadDemoData()
+            return
         }
         #endif
+        load()
     }
 
     // MARK: - 저장 / 불러오기
 
     private func load() {
-        guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            fileUnreadable = false
+            return
+        }
+        let data: Data
         do {
-            let data = try Data(contentsOf: fileURL)
+            data = try Data(contentsOf: fileURL)
+        } catch {
+            // 파일은 있는데 읽을 수 없어요. 잠시 뒤 다시 시도하고, 그동안은 저장하지 않아요.
+            fileUnreadable = true
+            return
+        }
+        fileUnreadable = false
+        do {
             let saved = try JSONDecoder().decode(SaveData.self, from: data)
             missions = saved.missions
             game = saved.game
             settings = saved.settings
         } catch {
-            // 읽지 못한 파일은 지우지 않고 따로 보관해 둡니다.
+            // 내용이 망가진 파일은 지우지 않고 옆으로 옮겨 보관한 뒤 새로 시작해요.
             let backup = fileURL.deletingLastPathComponent()
                 .appendingPathComponent("spacequest-unreadable-\(Int(Date().timeIntervalSince1970)).json")
-            try? FileManager.default.copyItem(at: fileURL, to: backup)
+            try? FileManager.default.moveItem(at: fileURL, to: backup)
         }
     }
 
     func save() {
+        if demo { return }
+        if fileUnreadable {
+            load()
+            if fileUnreadable { return }
+        }
         let data = SaveData(missions: missions, game: game, settings: settings)
         do {
             let encoded = try JSONEncoder().encode(data)
@@ -63,9 +103,17 @@ final class GameStore {
 
     var todayKey: String { DayKey.of(today) }
 
-    /// 앱을 열 때마다 호출: 날짜 갱신, 귀환 보너스, 알림 다시 잡기
-    func refreshDay() {
+    /// 앱을 열 때, 자정·시간대가 바뀔 때 호출: 날짜 갱신, 귀환 보너스, 알림 다시 잡기
+    @discardableResult
+    func refreshDay() -> Task<Void, Never> {
+        if fileUnreadable {
+            load()
+        }
+        let previousKey = todayKey
         today = Date()
+        if todayKey != previousKey {
+            undoRecords = [:]
+        }
 
         if let last = game.lastActiveDay,
            let gap = DayKey.daysBetween(last, todayKey),
@@ -84,17 +132,19 @@ final class GameStore {
         }
 
         save()
-        NotificationManager.shared.reschedule(store: self)
+        return NotificationManager.shared.reschedule(store: self)
     }
 
-    /// 그날 목록에 보일 미션 (오늘이면 못 끝낸 지난 미션도 포함)
+    /// 그날 목록에 보일 미션 (오늘이면 못 끝낸 지난 미션과, 오늘 끝낸 지난 미션도 포함)
     func missionsShown(on day: Date) -> [Mission] {
         let cal = Calendar.current
         let dayStart = cal.startOfDay(for: day)
         let isToday = cal.isDate(day, inSameDayAs: today)
+        let key = DayKey.of(day)
         return missions.filter { m in
             if m.occurs(on: day) { return true }
-            return isToday && isOverdue(m, relativeTo: dayStart)
+            guard isToday, m.repeatKind == .none else { return false }
+            return isOverdue(m, relativeTo: dayStart) || m.completions[key] != nil
         }
     }
 
@@ -103,6 +153,11 @@ final class GameStore {
         return m.repeatKind == .none
             && m.completions.isEmpty
             && Calendar.current.startOfDay(for: m.startDate) < start
+    }
+
+    /// 오늘 목록에 보이는 미션인지
+    func showsToday(_ m: Mission) -> Bool {
+        missionsShown(on: today).contains { $0.id == m.id }
     }
 
     var todayMissions: [Mission] {
@@ -123,6 +178,13 @@ final class GameStore {
         game.mainMission[DayKey.of(day)] == m.id
     }
 
+    /// 그날 메인 미션을 이미 끝냈는지 (끝낸 뒤에는 메인을 바꿀 수 없어요)
+    func mainIsLocked(on day: Date) -> Bool {
+        guard let id = game.mainMission[DayKey.of(day)],
+              let main = missions.first(where: { $0.id == id }) else { return false }
+        return main.completions[DayKey.of(day)] != nil
+    }
+
     var displayStreak: Int {
         guard let last = game.lastActiveDay, let gap = DayKey.daysBetween(last, todayKey) else { return 0 }
         if gap <= 1 { return game.streak }
@@ -131,18 +193,34 @@ final class GameStore {
 
     // MARK: - 미션 편집
 
-    func upsert(_ mission: Mission, makeMain: Bool) {
+    func upsert(_ edited: Mission, makeMain: Bool) {
+        var mission = edited
         if let idx = missions.firstIndex(where: { $0.id == mission.id }) {
+            let existing = missions[idx]
+            if existing.repeatKind == mission.repeatKind {
+                // 편집 화면이 열려 있는 동안 알림으로 완료한 기록도 지켜요.
+                mission.completions = existing.completions
+            } else {
+                // 반복 방식이 바뀌면 지난 기록은 새 방식과 맞지 않아서, 오늘 기록만 남겨요.
+                // (이미 받은 경험치와 행성은 그대로예요)
+                let key = todayKey
+                mission.completions = existing.completions.filter { $0.key == key }
+            }
             missions[idx] = mission
         } else {
             missions.append(mission)
         }
+
         let key = todayKey
-        let showsToday = mission.occurs(on: today) || isOverdue(mission)
-        if makeMain && showsToday {
-            game.mainMission[key] = mission.id
-        } else if game.mainMission[key] == mission.id {
+        if makeMain && showsToday(mission) {
+            if !mainIsLocked(on: today) {
+                game.mainMission[key] = mission.id
+            }
+        } else if game.mainMission[key] == mission.id && !mainIsLocked(on: today) {
             game.mainMission[key] = nil
+        }
+        if !mission.reminderEnabled {
+            NotificationManager.shared.cancelSnooze(missionID: mission.id.uuidString)
         }
         save()
         NotificationManager.shared.reschedule(store: self)
@@ -151,13 +229,18 @@ final class GameStore {
     func delete(_ id: UUID) {
         missions.removeAll { $0.id == id }
         game.mainMission = game.mainMission.filter { $0.value != id }
+        undoRecords[id] = nil
         save()
         NotificationManager.shared.cancelSnooze(missionID: id.uuidString)
         NotificationManager.shared.reschedule(store: self)
     }
 
-    /// 그날의 메인 미션으로 지정 (이미 메인이면 해제)
+    /// 그날의 메인 미션으로 지정 (이미 메인이면 해제). 메인 미션을 끝낸 날에는 바꿀 수 없어요.
     func setMain(_ id: UUID, on day: Date) {
+        guard !mainIsLocked(on: day) else {
+            Feedback.shared.impact(.rigid, enabled: settings.hapticsOn)
+            return
+        }
         let key = DayKey.of(day)
         if game.mainMission[key] == id {
             game.mainMission[key] = nil
@@ -182,9 +265,12 @@ final class GameStore {
     func complete(_ id: UUID, withFeedback: Bool) {
         guard let idx = missions.firstIndex(where: { $0.id == id }) else { return }
         let mission = missions[idx]
-        guard !mission.isDone(on: today) else { return }
+        guard !mission.isDone(on: today), showsToday(mission) else { return }
 
+        let key = todayKey
+        let before = game
         let now = Date()
+
         // 콤보: 같은 날, 정해진 시간 안에 연달아 끝내면 이어져요
         if let last = game.lastCompletionAt,
            now.timeIntervalSince(last) <= Rules.comboWindow,
@@ -196,31 +282,50 @@ final class GameStore {
         game.lastCompletionAt = now
         let comboMult = Rules.comboMultiplier(game.comboCount)
 
-        // 워프 부스트(크리티컬)
+        // 크리티컬과 캡슐은 "미션 + 날짜"로 정해진 결과라서, 껐다 켰다 해도 바뀌지 않아요.
+        var rng = SeededRandom(seed: Self.stableSeed("\(id.uuidString)|\(key)"))
         var crit = 1
-        if Double.random(in: 0..<1) < Rules.critChance {
-            crit = Double.random(in: 0..<1) < Rules.crit3Share ? 3 : 2
+        if rng.unit() < Rules.critChance {
+            crit = rng.unit() < Rules.crit3Share ? 3 : 2
         }
+        let capsuleRoll = rng.unit()
 
         let main = isMain(mission, on: today)
         let base = mission.difficulty.baseXP + (main ? Rules.mainBonus : 0)
         let gained = Int((Double(base) * comboMult * Double(crit)).rounded())
-        missions[idx].completions[todayKey] = gained
+        missions[idx].completions[key] = gained
 
         updateStreakOnActivity()
 
         // 보급 캡슐
-        let usedToday = game.capsulesByDay[todayKey] ?? 0
+        let usedToday = game.capsulesByDay[key] ?? 0
         var gotCapsule = false
         if usedToday < Rules.capsuleDailyLimit,
-           Double.random(in: 0..<1) < (main ? Rules.capsuleChanceMain : Rules.capsuleChance) {
+           capsuleRoll < (main ? Rules.capsuleChanceMain : Rules.capsuleChance) {
             game.capsules += 1
-            game.capsulesByDay[todayKey] = usedToday + 1
+            game.capsulesByDay[key] = usedToday + 1
             gotCapsule = true
         }
 
+        let levelBefore = game.level
         addXP(gained)
-        addFuel(1)
+        let planet = addFuel(1)
+
+        undoRecords[id] = CompletionRecord(
+            dayKey: key,
+            completedAt: now,
+            xp: gained,
+            levelUps: game.level - levelBefore,
+            rolledCapsule: gotCapsule,
+            planetID: planet?.id,
+            fuelBefore: before.fuel,
+            streakBefore: before.streak,
+            bestStreakBefore: before.bestStreak,
+            lastActiveBefore: before.lastActiveDay,
+            emergencyBefore: before.emergencyFuel,
+            comboBefore: before.comboCount,
+            lastCompletionBefore: before.lastCompletionAt
+        )
 
         lastEffect = CompletionEffect(
             xp: gained, crit: crit, combo: game.comboCount,
@@ -238,17 +343,67 @@ final class GameStore {
     func undo(_ id: UUID) {
         guard let idx = missions.firstIndex(where: { $0.id == id }) else { return }
         let mission = missions[idx]
+        let key = todayKey
         let gained: Int
         if mission.repeatKind == .none {
             gained = mission.completions.values.reduce(0, +)
             missions[idx].completions = [:]
         } else {
-            gained = mission.completions[todayKey] ?? 0
-            missions[idx].completions[todayKey] = nil
+            gained = mission.completions[key] ?? 0
+            missions[idx].completions[key] = nil
         }
-        game.xp = max(0, game.xp - gained)
+
+        // 경험치 (레벨이 올랐다면 다시 내려가요)
+        game.xp -= gained
         game.totalXP = max(0, game.totalXP - gained)
-        game.fuel = max(0, game.fuel - 1)
+        while game.xp < 0 && game.level > 1 {
+            game.level -= 1
+            game.xp += Rules.xpPerLevel
+        }
+        game.xp = max(0, game.xp)
+
+        if let record = undoRecords.removeValue(forKey: id), record.dayKey == key {
+            // 레벨업 보상 캡슐과 이번에 나온 캡슐은 아직 안 열었으면 회수해요.
+            let capsulesToTake = record.levelUps + (record.rolledCapsule ? 1 : 0)
+            game.capsules = max(0, game.capsules - capsulesToTake)
+            if record.rolledCapsule {
+                game.capsulesByDay[key] = max(0, (game.capsulesByDay[key] ?? 1) - 1)
+            }
+            celebrations.removeAll { item in
+                if case .levelUp = item.kind { return record.levelUps > 0 }
+                return false
+            }
+
+            // 이 완료로 발견한 행성은 도감에서 빼고 연료를 되돌려요.
+            if let planetID = record.planetID {
+                game.planets.removeAll { $0.id == planetID }
+                celebrations.removeAll { item in
+                    if case .planet(let p) = item.kind { return p.id == planetID }
+                    return false
+                }
+                game.fuel = record.fuelBefore
+            } else {
+                game.fuel = max(0, game.fuel - 1)
+            }
+
+            // 오늘 처음 끝낸 미션이었고 남은 완료가 없다면 연속 탐사도 되돌려요.
+            let stillActiveToday = missions.contains { $0.completions[key] != nil }
+            if record.lastActiveBefore != key && !stillActiveToday {
+                game.streak = record.streakBefore
+                game.bestStreak = record.bestStreakBefore
+                game.lastActiveDay = record.lastActiveBefore
+                game.emergencyFuel = record.emergencyBefore
+            }
+
+            // 가장 최근 완료를 되돌린 경우에만 콤보를 되돌려요.
+            if game.lastCompletionAt == record.completedAt {
+                game.comboCount = record.comboBefore
+                game.lastCompletionAt = record.lastCompletionBefore
+            }
+        } else {
+            game.fuel = max(0, game.fuel - 1)
+        }
+
         Feedback.shared.impact(.light, enabled: settings.hapticsOn)
         save()
         NotificationManager.shared.reschedule(store: self)
@@ -289,15 +444,18 @@ final class GameStore {
         }
     }
 
-    private func addFuel(_ amount: Int) {
+    /// 연료를 채우고, 가득 차면 발견한 행성을 돌려줘요.
+    @discardableResult
+    private func addFuel(_ amount: Int) -> Planet? {
         let before = game.fuel
         game.fuel = min(Rules.fuelGoal, game.fuel + amount)
         if before < Rules.fuelGoal && game.fuel >= Rules.fuelGoal {
-            discoverPlanet()
+            return discoverPlanet()
         }
+        return nil
     }
 
-    private func discoverPlanet() {
+    private func discoverPlanet() -> Planet {
         var planet = PlanetGenerator.make(forced: game.legendNext ? .legend : nil)
         game.legendNext = false
         let key = todayKey
@@ -305,6 +463,17 @@ final class GameStore {
         game.planets.append(planet)
         game.fuel = 0
         enqueue(.planet(planet))
+        return planet
+    }
+
+    /// 앱을 다시 켜도 같은 값이 나오는 문자열 해시 (FNV-1a)
+    private static func stableSeed(_ text: String) -> Int {
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in text.utf8 {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x0000_0100_0000_01B3
+        }
+        return Int(truncatingIfNeeded: hash)
     }
 
     // MARK: - 보급 캡슐
@@ -312,6 +481,13 @@ final class GameStore {
     func openCapsule() {
         guard game.capsules > 0 else { return }
         game.capsules -= 1
+        // 캡슐을 연 뒤에는 그 캡슐이 나온 완료를 되돌려도 회수하지 않아요.
+        undoRecords = undoRecords.mapValues { record in
+            var r = record
+            r.levelUps = 0
+            r.rolledCapsule = false
+            return r
+        }
 
         let rarity = Rules.roll(Rules.capsuleWeights)
         // 보상 화면을 먼저 줄 세운 뒤 효과를 적용해서, 레벨업·행성 발견 화면이 그다음에 나오게 해요.
@@ -395,9 +571,12 @@ final class GameStore {
     func resetAll() {
         missions = []
         game = GameState()
+        settings.skin = "기본"
         celebrations = []
         lastEffect = nil
+        undoRecords = [:]
         save()
+        NotificationManager.shared.cancelAllSnoozes()
         NotificationManager.shared.reschedule(store: self)
     }
 }

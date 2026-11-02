@@ -11,6 +11,7 @@ struct HomeView: View {
     @State private var shakes: CGFloat = 0
     @State private var warpID = 0
     @State private var showWarp = false
+    @State private var pendingDelete: Mission?
 
     var body: some View {
         NavigationStack {
@@ -58,6 +59,19 @@ struct HomeView: View {
             }
             .sheet(item: $editing) { mission in
                 MissionEditView(mission: mission)
+            }
+            .confirmationDialog(
+                "이 미션을 삭제할까요?",
+                isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
+                titleVisibility: .visible,
+                presenting: pendingDelete
+            ) { mission in
+                Button("삭제", role: .destructive) {
+                    store.delete(mission.id)
+                    pendingDelete = nil
+                }
+            } message: { mission in
+                Text("“\(mission.title)”와 완료 기록이 지워져요.")
             }
             .onChange(of: store.lastEffect) { _, effect in
                 if let effect {
@@ -108,12 +122,13 @@ struct HomeView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) {
-                        store.delete(mission.id)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button {
+                        pendingDelete = mission
                     } label: {
                         Label("삭제", systemImage: "trash")
                     }
+                    .tint(.red)
                     Button {
                         editing = mission
                     } label: {
@@ -121,7 +136,7 @@ struct HomeView: View {
                     }
                     .tint(.blue)
                 }
-                .swipeActions(edge: .leading) {
+                .swipeActions(edge: .leading, allowsFullSwipe: false) {
                     Button {
                         store.setMain(mission.id, on: day)
                     } label: {
@@ -141,7 +156,7 @@ struct HomeView: View {
                         Label(store.isMain(mission, on: day) ? "메인 미션 해제" : "오늘의 메인 미션으로", systemImage: "star")
                     }
                     Button(role: .destructive) {
-                        store.delete(mission.id)
+                        pendingDelete = mission
                     } label: {
                         Label("삭제", systemImage: "trash")
                     }
