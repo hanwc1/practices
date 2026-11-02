@@ -1,0 +1,41 @@
+name: iOS Build
+
+on:
+  push:
+    paths:
+      - "SpaceQuest/**"
+      - ".github/workflows/ios-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app || true
+          NEWEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$NEWEST" ]; then sudo xcode-select -s "$NEWEST"; fi
+          xcodebuild -version
+
+      - name: Build for iOS Simulator
+        run: |
+          set +e
+          xcodebuild \
+            -project SpaceQuest/SpaceQuest.xcodeproj \
+            -scheme SpaceQuest \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build > build.log 2>&1
+          STATUS=$?
+          echo "===== errors / warnings ====="
+          grep -E "(error|warning):" build.log | grep -v "^ld: warning" | sort -u | head -150
+          echo "===== last lines ====="
+          tail -25 build.log
+          exit $STATUS
