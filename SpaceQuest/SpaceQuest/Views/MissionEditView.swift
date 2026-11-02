@@ -10,6 +10,7 @@ struct MissionEditView: View {
     @State private var reminderTime: Date
     @State private var makeMain = false
     @State private var confirmDelete = false
+    @FocusState private var titleFocused: Bool
 
     init(mission: Mission?) {
         original = mission
@@ -36,6 +37,8 @@ struct MissionEditView: View {
             Form {
                 Section {
                     TextField("미션 이름 (예: 영어 단어 10개)", text: $draft.title)
+                        .focused($titleFocused)
+                        .submitLabel(.done)
                     Picker("난이도", selection: $draft.difficulty) {
                         ForEach(Difficulty.allCases) { d in
                             Text(d.label).tag(d)
@@ -112,6 +115,12 @@ struct MissionEditView: View {
             }
             .onAppear {
                 makeMain = store.isMain(draft, on: store.today)
+            }
+            .task {
+                // 새 미션이면 바로 이름을 쓸 수 있게 키보드를 올려요.
+                guard original == nil else { return }
+                try? await Task.sleep(for: .milliseconds(450))
+                titleFocused = true
             }
         }
     }

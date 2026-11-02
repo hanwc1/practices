@@ -42,18 +42,6 @@ struct HomeView: View {
             .navigationTitle("오늘의 탐사")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingNew = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(Theme.accent)
-                    }
-                    .accessibilityLabel("새 미션 추가")
-                }
-            }
             .sheet(isPresented: $showingNew) {
                 MissionEditView(mission: nil)
             }
@@ -165,6 +153,14 @@ struct HomeView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        // 미션이 많아져도 가려지지 않게 목록 아래에 항상 떠 있는 추가 버튼
+        .safeAreaInset(edge: .bottom) {
+            if !missions.isEmpty {
+                AddMissionButton { showingNew = true }
+                    .padding(.top, 6)
+                    .padding(.bottom, 10)
+            }
+        }
     }
 
     // MARK: 효과
@@ -445,6 +441,32 @@ struct MissionRow: View {
     }
 }
 
+struct AddMissionButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.headline.weight(.bold))
+                Text("새 미션 추가")
+                    .font(.headline)
+            }
+            .foregroundStyle(Theme.ink)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(
+                Capsule().fill(LinearGradient(
+                    colors: [Color(red: 0.76, green: 0.94, blue: 1), Theme.accent],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+            )
+            .shadow(color: Theme.accent.opacity(0.5), radius: 12)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("새 미션 추가")
+    }
+}
+
 struct EmptyMissionsView: View {
     let onAdd: () -> Void
 
@@ -458,16 +480,8 @@ struct EmptyMissionsView: View {
                 .font(.subheadline)
                 .foregroundStyle(Theme.muted)
                 .multilineTextAlignment(.center)
-            Button(action: onAdd) {
-                Text("미션 추가")
-                    .font(.headline)
-                    .foregroundStyle(Theme.ink)
-                    .padding(.horizontal, 22)
-                    .padding(.vertical, 10)
-                    .background(Capsule().fill(Theme.accent))
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 4)
+            AddMissionButton(action: onAdd)
+                .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 28)
