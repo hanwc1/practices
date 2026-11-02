@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>스케줄 관리</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">📅 스케줄 관리</h1>
+    <div class="topbar-actions">
+      <input id="search" type="search" placeholder="일정 검색…" aria-label="일정 검색" />
+      <button id="btn-add" class="btn primary" type="button">+ 새 일정</button>
+      <div class="menu">
+        <button id="btn-menu" class="btn" type="button" aria-haspopup="true" aria-expanded="false">⋯</button>
+        <div id="menu-list" class="menu-list" hidden>
+          <button id="btn-export" type="button">JSON으로 내보내기</button>
+          <button id="btn-import" type="button">JSON 가져오기</button>
+          <button id="btn-clear" type="button" class="danger">전체 삭제</button>
+        </div>
+        <input id="import-file" type="file" accept="application/json,.json" hidden />
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="calendar" aria-label="달력">
+      <div class="cal-header">
+        <button id="btn-prev" class="btn icon" type="button" aria-label="이전 달">‹</button>
+        <h2 id="cal-title"></h2>
+        <button id="btn-next" class="btn icon" type="button" aria-label="다음 달">›</button>
+        <button id="btn-today" class="btn" type="button">오늘</button>
+      </div>
+      <div class="weekdays">
+        <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
+      </div>
+      <div id="cal-grid" class="cal-grid"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="panel-head">
+          <h3 id="day-title"></h3>
+          <button id="btn-add-day" class="btn small" type="button">+ 추가</button>
+        </div>
+        <ul id="day-list" class="event-list"></ul>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h3 id="side-title">다가오는 일정 (7일)</h3>
+        </div>
+        <ul id="upcoming-list" class="event-list"></ul>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="event-dialog">
+    <form id="event-form" method="dialog">
+      <h3 id="dialog-title">새 일정</h3>
+      <label>제목
+        <input name="title" required maxlength="100" autocomplete="off" />
+      </label>
+      <label>날짜
+        <input name="date" type="date" required />
+      </label>
+      <label class="inline">
+        <input name="allDay" type="checkbox" /> 하루 종일
+      </label>
+      <div class="row time-row">
+        <label>시작
+          <input name="start" type="time" />
+        </label>
+        <label>종료
+          <input name="end" type="time" />
+        </label>
+      </div>
+      <div class="row">
+        <label>분류
+          <select name="category"></select>
+        </label>
+        <label>반복
+          <select name="repeat">
+            <option value="none">반복 안 함</option>
+            <option value="daily">매일</option>
+            <option value="weekly">매주</option>
+            <option value="monthly">매월</option>
+            <option value="yearly">매년</option>
+          </select>
+        </label>
+      </div>
+      <label class="repeat-until">반복 종료일 (선택)
+        <input name="repeatUntil" type="date" />
+      </label>
+      <label>메모
+        <textarea name="memo" rows="3" maxlength="1000"></textarea>
+      </label>
+      <p id="form-error" class="form-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button id="btn-delete" class="btn danger" type="button">삭제</button>
+        <span class="spacer"></span>
+        <button id="btn-cancel" class="btn" type="button">취소</button>
+        <button class="btn primary" type="submit">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
