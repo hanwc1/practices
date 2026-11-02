@@ -7,6 +7,9 @@ on:
       - ".github/workflows/ios-build.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: macos-latest
@@ -16,7 +19,6 @@ jobs:
 
       - name: Select newest Xcode
         run: |
-          ls -d /Applications/Xcode*.app || true
           NEWEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
           if [ -n "$NEWEST" ]; then sudo xcode-select -s "$NEWEST"; fi
           xcodebuild -version
@@ -37,5 +39,50 @@ jobs:
           echo "===== errors / warnings ====="
           grep -E "(error|warning):" build.log | grep -v "^ld: warning" | sort -u | head -150
           echo "===== last lines ====="
-          tail -25 build.log
+          tail -5 build.log
           exit $STATUS
+
+      - name: Run in Simulator and take screenshots
+        run: |
+          set -u
+          APP=build/Build/Products/Debug-iphonesimulator/SpaceQuest.app
+          BUNDLE=com.hanwc1.SpaceQuest
+          UDID=$(xcrun simctl list devices available | grep -E "iPhone 1[5-9]( Pro)? \(" | head -1 | grep -oE "[0-9A-F]{8}-[0-9A-F-]{27}")
+          if [ -z "$UDID" ]; then UDID=$(xcrun simctl list devices available | grep -E "iPhone" | head -1 | grep -oE "[0-9A-F]{8}-[0-9A-F-]{27}"); fi
+          echo "Simulator: $(xcrun simctl list devices | grep "$UDID")"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 || true
+          xcrun simctl install "$UDID" "$APP"
+          mkdir -p shots
+          shoot() {
+            name=$1; shift
+            xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
+            xcrun simctl launch "$UDID" "$BUNDLE" -demo "$@"
+            sleep 6
+            if xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE"; then
+              echo "RUNNING: $name"
+            else
+              echo "CRASHED: $name"
+            fi
+            xcrun simctl io "$UDID" screenshot "shots/$name.png" >/dev/null 2>&1
+            sips -Z 900 "shots/$name.png" >/dev/null
+          }
+          shoot 1-home -tab home
+          shoot 2-dex -tab dex
+          shoot 3-log -tab log
+          shoot 4-settings -tab settings
+          shoot 5-planet -tab home -celebrate planet
+          shoot 6-capsule -tab home -celebrate capsule
+          shoot 7-levelup -tab home -celebrate level
+          echo "===== crash reports ====="
+          ls ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i spacequest || echo "none"
+          ls -la shots
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots/
+          retention-days: 7

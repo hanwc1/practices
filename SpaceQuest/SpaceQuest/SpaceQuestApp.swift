@@ -23,21 +23,34 @@ struct SpaceQuestApp: App {
 
 struct ContentView: View {
     @Environment(GameStore.self) private var store
+    @State private var tab = ContentView.initialTab
+
+    private static var initialTab: String {
+        #if DEBUG
+        return DemoMode.value(after: "-tab") ?? "home"
+        #else
+        return "home"
+        #endif
+    }
 
     var body: some View {
         let newPlanets = store.planets(on: store.today).count
 
         ZStack {
-            TabView {
+            TabView(selection: $tab) {
                 HomeView()
                     .tabItem { Label("오늘", systemImage: "sparkles") }
+                    .tag("home")
                 DexView()
                     .tabItem { Label("도감", systemImage: "globe.asia.australia.fill") }
                     .badge(newPlanets)
+                    .tag("dex")
                 LogView()
                     .tabItem { Label("탐사 일지", systemImage: "book.closed.fill") }
+                    .tag("log")
                 SettingsView()
                     .tabItem { Label("설정", systemImage: "gearshape.fill") }
+                    .tag("settings")
             }
             .tint(Theme.accent)
 

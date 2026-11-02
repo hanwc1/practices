@@ -24,6 +24,11 @@ final class GameStore {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         fileURL = dir.appendingPathComponent("spacequest.json")
         load()
+        #if DEBUG
+        if DemoMode.isOn {
+            loadDemoData()
+        }
+        #endif
     }
 
     // MARK: - 저장 / 불러오기
